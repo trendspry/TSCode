@@ -10,24 +10,22 @@ var passKey = apiKey + ':' + password;
 var baseUrl = 'trendspry-2.myshopify.com';
 var HTTPS = "https://";
 var postHost = HTTPS + passKey + '@' + baseUrl;
-var PAGE = "page="
+var PAGE = "page=";
 var LIMIT = "limit=2&";
 var pageNum = 1;
 
-//var discountTags = ['Dis_90-100', 'Dis_80-90', 'Dis_70-80', 'Dis_60-70', 'Dis_50-60', 'Dis_40-50', 'Dis_30-40', 'Dis_20-30', 'Dis_10-20', 'Dis_0-10'];
+
 var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40', 'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
-
 
 	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT + PAGE + pageNum;
 	//console.log(url)
 	reqeustForUrl(url);
 
-
 	var fullname = "rahul agarwal";
-
 	res.render('helloworld', { title: fullname })
+
 });
 
 function printAtConsole(body) {
@@ -71,15 +69,11 @@ function parseResponseForDiscount(body) {
 	var variantId = '';
 	var productId = '';
 	var discTag = '';
-	//print 'hel';
 	var productsFound = productsJson.products.length;
 	var createDiscMetaString;
 
-	//console.log("productsFound ==> " + productsFound);
-
 	if (productsFound > 0) {
 
-		//console.log(productsJson.products[0].price);
 		//for (i = 0; i < 1; i++) {
 		for (i = 0; i < productsFound; i++) {
 			var tags;
@@ -91,9 +85,10 @@ function parseResponseForDiscount(body) {
 			compare_at_price = productsJson.products[i].variants[0].compare_at_price;
 			price = productsJson.products[i].variants[0].price;
 			tags = productsJson.products[i].tags;
+
+			//Calculate Discount
 			if (compare_at_price > 0 && price > 0 && compare_at_price >= price) {
 				discount = (compare_at_price - price) * 100 / compare_at_price;
-				//discount = discount.toFixed(2);
 			}
 
 			// Json to create metadata field discount
@@ -104,15 +99,10 @@ function parseResponseForDiscount(body) {
 				value_type: 'string'
 			}};
 
-			//createDiscMetaString = JSON.stringify(createDiscMeta);
-
-
-			var postUrl = '/admin/products/' + productId + '/metafields.json';
-			//console.log(postHost + postUrl);
+			var postMetafieldUrl = '/admin/products/' + productId + '/metafields.json';
 
 			setTimeout(function () {
-
-				postDataToShopify(postHost, postUrl, createDiscMeta);
+				postDataToShopify(postHost, postMetafieldUrl, createDiscMeta);
 			}, 5000);
 
 
