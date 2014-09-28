@@ -109,48 +109,15 @@ function parseResponseForDiscount(body) {
 			//console.log("price:" + price + " compare_at_price:" + compare_at_price
 			//		+ " discount:" + discount.toFixed(2) + " pId:" + productId + " tags:" + tags);
 
-			console.log("tags:" + tags);
 
-
-			if (discount >= 90) {
-				discTag = discountTags[9];
-			} else if (discount >= 80 && discount <= 90) {
-				discTag = discountTags[8];
-			} else if (discount >= 70 && discount <= 80) {
-				discTag = discountTags[7];
-			} else if (discount >= 60 && discount <= 70) {
-				discTag = discountTags[6];
-			} else if (discount >= 50 && discount <= 60) {
-				discTag = discountTags[5];
-			} else if (discount >= 40 && discount <= 50) {
-				discTag = discountTags[4];
-			} else if (discount >= 30 && discount <= 40) {
-				discTag = discountTags[3];
-			} else if (discount >= 20 && discount <= 30) {
-				discTag = discountTags[2];
-			} else if (discount >= 10 && discount <= 20) {
-				discTag = discountTags[1];
-			} else if (discount > 0 && discount < 10) {
-				discTag = discountTags[0];
-			}
+			discTag = getAppropriateTag(discount);
 			console.log("disTag:" + discTag + " discount:" + discount);
 		}
 
-		var tagsStr = tags.split(",");
-		var tagLength = tagsStr.length;
-		var x = 0;
-		for (i = 0; i < tagLength; i++) {
-			console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
-			if (discountTags.indexOf(tagsStr[i].trim()) > -1) {
-				console.log("not found");
-			} else {
-				updatedTags[x] = tagsStr[i].trim();
-				x++;
-			}
-		}
-		updatedTags[x] = discTag;
-		console.log("###tagsStr:" + tagsStr + " len:" + tagsStr.length + " tags:" + tags + " updatedTags:" + updatedTags);
-
+		//Create Tags excluding DiscountTag
+		updatedTags = getTagsExcludingDiscountTags(tags);
+		var tagLen = updatedTags.length;
+		updatedTags[tagLen] = discTag;
 
 		// Json to update tags
 		updateTagsJson = { product: {
@@ -158,16 +125,12 @@ function parseResponseForDiscount(body) {
 			tags: updatedTags.toString()
 		}};
 
-
-		//Post for tag
+		//Put for tag
 		var postTagUrl = '/admin/products/' + productId + '.json';
 		console.log(postHost + postTagUrl);
-
 		setTimeout(function () {
-
 			putDataToShopify(postHost, postTagUrl, updateTagsJson);
 		}, 5000);
-
 
 		return true;
 	}
@@ -194,5 +157,47 @@ function putDataToShopify(postHost, postUrl, postData) {
 
 }
 
+function getAppropriateTag(discount) {
+	var discTag = '';
+	if (discount >= 90) {
+		discTag = discountTags[9];
+	} else if (discount >= 80 && discount <= 90) {
+		discTag = discountTags[8];
+	} else if (discount >= 70 && discount <= 80) {
+		discTag = discountTags[7];
+	} else if (discount >= 60 && discount <= 70) {
+		discTag = discountTags[6];
+	} else if (discount >= 50 && discount <= 60) {
+		discTag = discountTags[5];
+	} else if (discount >= 40 && discount <= 50) {
+		discTag = discountTags[4];
+	} else if (discount >= 30 && discount <= 40) {
+		discTag = discountTags[3];
+	} else if (discount >= 20 && discount <= 30) {
+		discTag = discountTags[2];
+	} else if (discount >= 10 && discount <= 20) {
+		discTag = discountTags[1];
+	} else if (discount > 0 && discount < 10) {
+		discTag = discountTags[0];
+	}
+	return discTag;
+}
+
+function getTagsExcludingDiscountTags(tags) {
+	var updatedTags = [''];
+	var tagsStr = tags.split(",");
+	var tagLength = tagsStr.length;
+	var x = 0;
+	for (i = 0; i < tagLength; i++) {
+		console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
+		if (discountTags.indexOf(tagsStr[i].trim()) > -1) {
+			console.log("not found");
+		} else {
+			updatedTags[x] = tagsStr[i].trim();
+			x++;
+		}
+	}
+	return updatedTags;
+}
 
 module.exports = router;
