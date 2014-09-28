@@ -11,15 +11,17 @@ var baseUrl = 'trendspry-2.myshopify.com';
 var HTTPS = "https://";
 var postHost = HTTPS + passKey + '@' + baseUrl;
 var PAGE = "page="
+var LIMIT = "limit=2&";
 var pageNum = 1;
 
-
+//var discountTags = ['Dis_90-100', 'Dis_80-90', 'Dis_70-80', 'Dis_60-70', 'Dis_50-60', 'Dis_40-50', 'Dis_30-40', 'Dis_20-30', 'Dis_10-20', 'Dis_0-10'];
+var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40', 'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
 
 
-	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + PAGE + pageNum;
-	console.log(url)
+	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT + PAGE + pageNum;
+	//console.log(url)
 	reqeustForUrl(url);
 
 
@@ -44,13 +46,14 @@ function reqeustForUrl(url) {
 		if (!error && response.statusCode === 200) {
 			continueParsing = parseResponseForDiscount(body);
 			// Uncomment the below to let is work in a loop
-			if(continueParsing){
+			/*if (continueParsing) {
 			 pageNum++;
 			 nextUrl = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + PAGE + pageNum;
-			 console.log("next url " + nextUrl);
+			 //console.log("next url " + nextUrl);
 			 reqeustForUrl(nextUrl);
 			 }
-			console.log("continue parsing in func " + continueParsing);
+			 */
+			//console.log("continue parsing in func " + continueParsing);
 		}
 		else {
 			console.log('ERROR');
@@ -67,22 +70,23 @@ function parseResponseForDiscount(body) {
 	var discount = 0;
 	var variantId = '';
 	var productId = '';
+	var discTag = '';
 	//print 'hel';
 	var productsFound = productsJson.products.length;
+	var createDiscMetaString;
 
-
-	console.log("productsFound ==> " + productsFound);
+	//console.log("productsFound ==> " + productsFound);
 
 	if (productsFound > 0) {
 
-		var options;
-		var createDiscMetaString;
-		var headers;
-		var tags;
 		//console.log(productsJson.products[0].price);
-		//for (i = 0; i < 4; i++) {
+		//for (i = 0; i < 1; i++) {
 		for (i = 0; i < productsFound; i++) {
-			console.log("req no: " + (50*(pageNum-1)+i))
+			var tags;
+			var updatedTags = [''];
+
+			//for (i = 0; i < productsFound; i++) {
+			console.log("req no: " + (50 * (pageNum - 1) + i))
 			productId = productsJson.products[i].id;
 			compare_at_price = productsJson.products[i].variants[0].compare_at_price;
 			price = productsJson.products[i].variants[0].price;
@@ -104,17 +108,75 @@ function parseResponseForDiscount(body) {
 
 
 			var postUrl = '/admin/products/' + productId + '/metafields.json';
-			console.log(postHost + postUrl);
+			//console.log(postHost + postUrl);
 
-			setTimeout(function(){
+			setTimeout(function () {
 
 				postDataToShopify(postHost, postUrl, createDiscMeta);
-			    },5000);
+			}, 5000);
 
 
-			console.log("price:" + price + " compare_at_price:" + compare_at_price
-					+ " discount:" + discount.toFixed(2) + " pId:" + productId + " tags:" + tags);
+			//console.log("price:" + price + " compare_at_price:" + compare_at_price
+			//		+ " discount:" + discount.toFixed(2) + " pId:" + productId + " tags:" + tags);
+
+			console.log("tags:" + tags);
+
+
+			if (discount >= 90) {
+				discTag = discountTags[9];
+			} else if (discount >= 80 && discount <= 90) {
+				discTag = discountTags[8];
+			} else if (discount >= 70 && discount <= 80) {
+				discTag = discountTags[7];
+			} else if (discount >= 60 && discount <= 70) {
+				discTag = discountTags[6];
+			} else if (discount >= 50 && discount <= 60) {
+				discTag = discountTags[5];
+			} else if (discount >= 40 && discount <= 50) {
+				discTag = discountTags[4];
+			} else if (discount >= 30 && discount <= 40) {
+				discTag = discountTags[3];
+			} else if (discount >= 20 && discount <= 30) {
+				discTag = discountTags[2];
+			} else if (discount >= 10 && discount <= 20) {
+				discTag = discountTags[1];
+			} else if (discount > 0 && discount < 10) {
+				discTag = discountTags[0];
+			}
+			console.log("disTag:" + discTag + " discount:" + discount);
 		}
+
+		var tagsStr = tags.split(",");
+		var tagLength = tagsStr.length;
+		var x = 0;
+		for (i = 0; i < tagLength; i++) {
+			console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
+			if (discountTags.indexOf(tagsStr[i].trim()) > -1) {
+				console.log("not found");
+			} else {
+				updatedTags[x] = tagsStr[i].trim();
+				x++;
+			}
+		}
+		updatedTags[x] = discTag;
+		console.log("###tagsStr:" + tagsStr + " len:" + tagsStr.length + " tags:" + tags + " updatedTags:" + updatedTags);
+
+
+		// Json to update tags
+		updateTagsJson = { product: {
+			id: productId,
+			tags: updatedTags.toString()
+		}};
+
+
+		//Post for tag
+		var postTagUrl = '/admin/products/' + productId + '.json';
+		console.log(postHost + postTagUrl);
+
+		setTimeout(function () {
+
+			putDataToShopify(postHost, postTagUrl, updateTagsJson);
+		}, 5000);
 
 
 		return true;
@@ -127,8 +189,17 @@ function postDataToShopify(postHost, postUrl, postData) {
 	var client = request_json.newClient(postHost);
 
 	client.post(postUrl, postData, function (err, res, body) {
-		console.log("inside post function");
-		return console.log(res.statusCode + JSON.stringify(body));
+		return console.log(JSON.stringify(postData) + "======post========> " + res.statusCode + JSON.stringify(body));
+	});
+
+}
+
+function putDataToShopify(postHost, postUrl, postData) {
+
+	var client = request_json.newClient(postHost);
+
+	client.put(postUrl, postData, function (err, res, body) {
+		return console.log(JSON.stringify(postData) + "======put========> " + res.statusCode + JSON.stringify(body));
 	});
 
 }
