@@ -11,16 +11,18 @@ var baseUrl = 'trendspry-2.myshopify.com';
 var HTTPS = "https://";
 var postHost = HTTPS + passKey + '@' + baseUrl;
 var PAGE = "page=";
-var LIMIT = "limit=2&";
+var AMP = "&";
+var LIMIT = 50;
+var LIMIT_EXPRESSION = "limit=" + LIMIT + AMP;
 var pageNum = 1;
-
-
 var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40', 'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
+
+
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
 
-	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT + PAGE + pageNum;
-	//console.log(url)
+	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?"  + PAGE + pageNum;
+	//var url = HTTPS + passKey + "@" + baseUrl + "/admin/products/340474147.json";
 	reqeustForUrl(url);
 
 	var fullname = "rahul agarwal";
@@ -28,13 +30,14 @@ router.get('/', function (req, res) {
 
 });
 
-function printAtConsole(body) {
-	console.log(body);
+function printAtConsole(comment, data) {
+	console.log(comment + "::" + JSON.stringify(data));
 }
 
 
 function reqeustForUrl(url) {
 
+	console.log("about to hit thte url" + url);
 	var continueParsing;
 	request({
 		url: url,
@@ -44,13 +47,13 @@ function reqeustForUrl(url) {
 		if (!error && response.statusCode === 200) {
 			continueParsing = parseResponseForDiscount(body);
 			// Uncomment the below to let is work in a loop
-			/*if (continueParsing) {
+			if (continueParsing) {
 			 pageNum++;
 			 nextUrl = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + PAGE + pageNum;
-			 //console.log("next url " + nextUrl);
+			 console.log("next url " + nextUrl);
 			 reqeustForUrl(nextUrl);
 			 }
-			 */
+
 			//console.log("continue parsing in func " + continueParsing);
 		}
 		else {
@@ -69,19 +72,26 @@ function parseResponseForDiscount(body) {
 	var variantId = '';
 	var productId = '';
 	var discTag = '';
+	var createDiscMetaString = '';
+	var productTitle = '';
 	var productsFound = productsJson.products.length;
-	var createDiscMetaString;
+
 
 	if (productsFound > 0) {
 
-		//for (i = 0; i < 1; i++) {
+
+		printAtConsole("products found", productsFound);
+		//for (i = 0; i < 2; i++) {
 		for (i = 0; i < productsFound; i++) {
+			console.log("i=------------------->" + i);
 			var tags;
 			var updatedTags = [''];
 
 			//for (i = 0; i < productsFound; i++) {
-			console.log("req no: " + (50 * (pageNum - 1) + i))
+			console.log("req no::::::::: " + (LIMIT * (pageNum - 1) + i))
 			productId = productsJson.products[i].id;
+			console.log("pid::::" + productId);
+			productTitle = productsJson.products[i].title;
 			compare_at_price = productsJson.products[i].variants[0].compare_at_price;
 			price = productsJson.products[i].variants[0].price;
 			tags = productsJson.products[i].tags;
@@ -101,36 +111,36 @@ function parseResponseForDiscount(body) {
 
 			var postMetafieldUrl = '/admin/products/' + productId + '/metafields.json';
 
-			setTimeout(function () {
-				postDataToShopify(postHost, postMetafieldUrl, createDiscMeta);
-			}, 5000);
+			//console.log("going to post discount field for " + productTitle + " dis " + discount.toFixed(2));
 
 
-			//console.log("price:" + price + " compare_at_price:" + compare_at_price
-			//		+ " discount:" + discount.toFixed(2) + " pId:" + productId + " tags:" + tags);
+			//console.log("metafiled url:" + postMetafieldUrl);
+			postDataToShopify(postHost, postMetafieldUrl, createDiscMeta);
 
 
 			discTag = getAppropriateTag(discount);
-			console.log("disTag:" + discTag + " discount:" + discount);
-		}
+			console.log("for product:" + productId + ":" + productTitle + " disTag:" + discTag + " discount:" + discount);
 
-		//Create Tags excluding DiscountTag
-		updatedTags = getTagsExcludingDiscountTags(tags);
-		var tagLen = updatedTags.length;
-		updatedTags[tagLen] = discTag;
+			sleep(500);
 
-		// Json to update tags
-		updateTagsJson = { product: {
-			id: productId,
-			tags: updatedTags.toString()
-		}};
+			//Create Tags excluding DiscountTag
+			updatedTags = getTagsExcludingDiscountTags(tags, discTag);
+			console.log("for product:" + productId + ":" + productTitle + " updatedTags:" + updatedTags.toString());
 
-		//Put for tag
-		var postTagUrl = '/admin/products/' + productId + '.json';
-		console.log(postHost + postTagUrl);
-		setTimeout(function () {
+			// Json to update tags
+			updateTagsJson = { product: {
+				id: productId,
+				tags: updatedTags.toString()
+			}};
+
+			//Put for tag
+			var postTagUrl = '/admin/products/' + productId + '.json';
+			//console.log(postHost + postTagUrl);
+
 			putDataToShopify(postHost, postTagUrl, updateTagsJson);
-		}, 5000);
+
+
+		}
 
 		return true;
 	}
@@ -140,9 +150,9 @@ function parseResponseForDiscount(body) {
 function postDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
-
+	console.log("posting -->" + JSON.stringify(postData) + " URL:" + postUrl);
 	client.post(postUrl, postData, function (err, res, body) {
-		return console.log(JSON.stringify(postData) + "======post========> " + res.statusCode + JSON.stringify(body));
+		return console.log("======post========> " + res.statusCode /*+ JSON.stringify(body)*/);
 	});
 
 }
@@ -152,10 +162,29 @@ function putDataToShopify(postHost, postUrl, postData) {
 	var client = request_json.newClient(postHost);
 
 	client.put(postUrl, postData, function (err, res, body) {
-		return console.log(JSON.stringify(postData) + "======put========> " + res.statusCode + JSON.stringify(body));
+		return console.log(/*JSON.stringify(postData) + */ "======put========> " + res.statusCode /*+ JSON.stringify(body)*/);
 	});
 
 }
+
+function getTagsExcludingDiscountTags(tags, discTag) {
+	var updatedTags = [''];
+	var tagsStr = tags.split(",");
+	var tagLength = tagsStr.length;
+	var x = 0;
+	for (j = 0; j < tagLength; j++) {
+		//console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
+		if (discountTags.indexOf(tagsStr[j].trim()) > -1) {
+			console.log("not found");
+		} else {
+			updatedTags[x] = tagsStr[j].trim();
+			x++;
+		}
+	}
+	updatedTags[x] = discTag;
+	return updatedTags;
+}
+
 
 function getAppropriateTag(discount) {
 	var discTag = '';
@@ -183,21 +212,11 @@ function getAppropriateTag(discount) {
 	return discTag;
 }
 
-function getTagsExcludingDiscountTags(tags) {
-	var updatedTags = [''];
-	var tagsStr = tags.split(",");
-	var tagLength = tagsStr.length;
-	var x = 0;
-	for (i = 0; i < tagLength; i++) {
-		console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
-		if (discountTags.indexOf(tagsStr[i].trim()) > -1) {
-			console.log("not found");
-		} else {
-			updatedTags[x] = tagsStr[i].trim();
-			x++;
-		}
+function sleep(miliseconds) {
+	var currentTime = new Date().getTime();
+
+	while (currentTime + miliseconds >= new Date().getTime()) {
 	}
-	return updatedTags;
 }
 
 module.exports = router;
