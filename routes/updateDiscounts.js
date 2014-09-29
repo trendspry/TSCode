@@ -14,14 +14,14 @@ var PAGE = "page=";
 var AMP = "&";
 var LIMIT = 50;
 var LIMIT_EXPRESSION = "limit=" + LIMIT + AMP;
-var pageNum = 1;
+var pageNum;
 var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40', 'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
 
 
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
-
-	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?"  + PAGE + pageNum;
+	pageNum = 1;
+	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
 	//var url = HTTPS + passKey + "@" + baseUrl + "/admin/products/340474147.json";
 	reqeustForUrl(url);
 
@@ -37,7 +37,7 @@ function printAtConsole(comment, data) {
 
 function reqeustForUrl(url) {
 
-	console.log("about to hit thte url" + url);
+	console.log("about to hit thte url:" + url);
 	var continueParsing;
 	request({
 		url: url,
@@ -48,11 +48,11 @@ function reqeustForUrl(url) {
 			continueParsing = parseResponseForDiscount(body);
 			// Uncomment the below to let is work in a loop
 			if (continueParsing) {
-			 pageNum++;
-			 nextUrl = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + PAGE + pageNum;
-			 console.log("next url " + nextUrl);
-			 reqeustForUrl(nextUrl);
-			 }
+				pageNum++;
+				nextUrl = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
+				console.log("next url " + nextUrl);
+				reqeustForUrl(nextUrl);
+			}
 
 			//console.log("continue parsing in func " + continueParsing);
 		}
@@ -121,7 +121,7 @@ function parseResponseForDiscount(body) {
 			discTag = getAppropriateTag(discount);
 			console.log("for product:" + productId + ":" + productTitle + " disTag:" + discTag + " discount:" + discount);
 
-			sleep(500);
+			//sleep(200);
 
 			//Create Tags excluding DiscountTag
 			updatedTags = getTagsExcludingDiscountTags(tags, discTag);
@@ -150,6 +150,7 @@ function parseResponseForDiscount(body) {
 function postDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
+	sleep(100);
 	console.log("posting -->" + JSON.stringify(postData) + " URL:" + postUrl);
 	client.post(postUrl, postData, function (err, res, body) {
 		return console.log("======post========> " + res.statusCode /*+ JSON.stringify(body)*/);
@@ -160,6 +161,7 @@ function postDataToShopify(postHost, postUrl, postData) {
 function putDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
+	sleep(100);
 
 	client.put(postUrl, postData, function (err, res, body) {
 		return console.log(/*JSON.stringify(postData) + */ "======put========> " + res.statusCode /*+ JSON.stringify(body)*/);
