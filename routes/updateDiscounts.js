@@ -4,16 +4,12 @@ var request = require("request");
 var router = express.Router();
 
 //Stag variables
-/*
+
 var apiKey = '3a61d090139b47e036020ac61c80b8e2';
 var password = 'deb4069f2ffd14a1d0185b60de155e93';
 var baseUrl = 'trendspry-2.myshopify.com';
-*/
 
-//Prod variables
-var apiKey = '6789fc800976ac6b8cf1b9db5106d49e';
-var password = '16f899a111d98b3d4a584aac96549597';
-var baseUrl = 'trendspry.myshopify.com';
+
 
 
 
