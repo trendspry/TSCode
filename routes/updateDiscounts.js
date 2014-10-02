@@ -3,19 +3,30 @@ var request_json = require('request-json');
 var request = require("request");
 var router = express.Router();
 
-
+//Stag variables
+/*
 var apiKey = '3a61d090139b47e036020ac61c80b8e2';
 var password = 'deb4069f2ffd14a1d0185b60de155e93';
-var passKey = apiKey + ':' + password;
 var baseUrl = 'trendspry-2.myshopify.com';
+*/
+
+//Prod variables
+var apiKey = '6789fc800976ac6b8cf1b9db5106d49e';
+var password = '16f899a111d98b3d4a584aac96549597';
+var baseUrl = 'trendspry.myshopify.com';
+
+
+
+var passKey = apiKey + ':' + password;
 var HTTPS = "https://";
 var postHost = HTTPS + passKey + '@' + baseUrl;
 var PAGE = "page=";
 var AMP = "&";
-var LIMIT = 50;
+var LIMIT = 20;
 var LIMIT_EXPRESSION = "limit=" + LIMIT + AMP;
 var pageNum;
-var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40', 'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
+var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40',
+	'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
 
 
 /* GET UpdateDiscounts. */
@@ -37,6 +48,7 @@ function printAtConsole(comment, data) {
 
 function reqeustForUrl(url) {
 
+	sleep(2000);
 	console.log("about to hit thte url:" + url);
 	var continueParsing;
 	request({
@@ -57,7 +69,7 @@ function reqeustForUrl(url) {
 			//console.log("continue parsing in func " + continueParsing);
 		}
 		else {
-			console.log('ERROR');
+			console.log('ERROR====>' + JSON.stringify(error) );
 		}
 	})
 
@@ -121,10 +133,10 @@ function parseResponseForDiscount(body) {
 			discTag = getAppropriateTag(discount);
 			console.log("for product:" + productId + ":" + productTitle + " disTag:" + discTag + " discount:" + discount);
 
-			//sleep(200);
+			sleep(200);
 
 			//Create Tags excluding DiscountTag
-			updatedTags = getTagsExcludingDiscountTags(tags, discTag);
+			updatedTags = getUpdatedTags(tags, discTag);
 			console.log("for product:" + productId + ":" + productTitle + " updatedTags:" + updatedTags.toString());
 
 			// Json to update tags
@@ -134,23 +146,24 @@ function parseResponseForDiscount(body) {
 			}};
 
 			//Put for tag
-			var postTagUrl = '/admin/products/' + productId + '.json';
-			//console.log(postHost + postTagUrl);
+			var putTagUrl = '/admin/products/' + productId + '.json';
+			//console.log(postHost + putTagUrl);
 
-			putDataToShopify(postHost, postTagUrl, updateTagsJson);
+			putDataToShopify(postHost, putTagUrl, updateTagsJson);
 
 
 		}
 
 		return true;
-	}
+	}   else {
 	return false;
+	}
 }
 
 function postDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
-	sleep(100);
+	sleep(400);
 	console.log("posting -->" + JSON.stringify(postData) + " URL:" + postUrl);
 	client.post(postUrl, postData, function (err, res, body) {
 		return console.log("======post========> " + res.statusCode /*+ JSON.stringify(body)*/);
@@ -161,15 +174,15 @@ function postDataToShopify(postHost, postUrl, postData) {
 function putDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
-	sleep(100);
+	sleep(400);
 
 	client.put(postUrl, postData, function (err, res, body) {
-		return console.log(/*JSON.stringify(postData) + */ "======put========> " + res.statusCode /*+ JSON.stringify(body)*/);
+		return console.log(JSON.stringify(err) +  "======put========> " + res.statusCode /*+ JSON.stringify(body)*/);
 	});
 
 }
 
-function getTagsExcludingDiscountTags(tags, discTag) {
+function getUpdatedTags(tags, discTag) {
 	var updatedTags = [''];
 	var tagsStr = tags.split(",");
 	var tagLength = tagsStr.length;
