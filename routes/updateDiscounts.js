@@ -3,17 +3,13 @@ var request_json = require('request-json');
 var request = require("request");
 var router = express.Router();
 var logger = require("../utils/logger.js");
-//Stag variables
-
-//var apiKey = '3a61d090139b47e036020ac61c80b8e2';
-//var password = 'deb4069f2ffd14a1d0185b60de155e93';
-//var baseUrl = 'trendspry-2.myshopify.com';
+var PropertiesReader = require("properties-reader");
+var properties = PropertiesReader("./properties/store.properties");
 
 
-//Prod variables
-var apiKey = '6789fc800976ac6b8cf1b9db5106d49e';
-var password = '16f899a111d98b3d4a584aac96549597';
-var baseUrl = 'trendspry.myshopify.com';
+var apiKey = properties.get('store.apiKey');
+var password = properties.get('store.password');
+var baseUrl = properties.get('store.baseUrl');
 
 
 
@@ -34,6 +30,7 @@ var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40',
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
 	pageNum = 1 ;
+	logger.info("hello");
 	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
 	//var url = HTTPS + passKey + "@" + baseUrl + "/admin/products/340474147.json";
 	reqeustForUrl(url);
