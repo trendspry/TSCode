@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var updateDiscounts = require('./routes/updateDiscounts');
+var updateUptoTags = require('./routes/updateUptoTags');
 var createDiscount = require('./routes/createDiscount');
 var shopifyTest = require('./routes/shopifyTest');
 var users = require('./routes/users');
@@ -28,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/updateDiscounts', updateDiscounts);
+app.use('/updateUptoTags', updateUptoTags);
 app.use('/createDiscount', createDiscount);
 app.use('/shopifyTest', shopifyTest);
 app.use('/users', users);

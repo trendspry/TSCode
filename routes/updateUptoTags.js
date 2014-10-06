@@ -2,13 +2,12 @@ var express = require('express');
 var request_json = require('request-json');
 var request = require("request");
 var router = express.Router();
-var logger = require("../utils/logger.js");
+
 //Stag variables
 
 //var apiKey = '3a61d090139b47e036020ac61c80b8e2';
 //var password = 'deb4069f2ffd14a1d0185b60de155e93';
 //var baseUrl = 'trendspry-2.myshopify.com';
-
 
 //Prod variables
 var apiKey = '6789fc800976ac6b8cf1b9db5106d49e';
@@ -17,23 +16,20 @@ var baseUrl = 'trendspry.myshopify.com';
 
 
 
-
-
 var passKey = apiKey + ':' + password;
 var HTTPS = "https://";
 var postHost = HTTPS + passKey + '@' + baseUrl;
 var PAGE = "page=";
 var AMP = "&";
-var LIMIT = 1;
+var LIMIT = 20;
 var LIMIT_EXPRESSION = "limit=" + LIMIT + AMP;
 var pageNum;
-var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40',
-	'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
+var uptoTags = ['Upto10', 'Upto20', 'Upto30', 'Upto40', 'Upto50', 'Upto60', 'Upto70', 'Upto80', 'Upto90'];
 
 
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
-	pageNum = 1 ;
+	pageNum = 1;
 	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
 	//var url = HTTPS + passKey + "@" + baseUrl + "/admin/products/340474147.json";
 	reqeustForUrl(url);
@@ -50,7 +46,7 @@ function printAtConsole(comment, data) {
 
 function reqeustForUrl(url) {
 
-	//sleep(1000);
+	sleep(2000);
 	console.log("about to hit thte url:" + url);
 	var continueParsing;
 	request({
@@ -106,37 +102,16 @@ function parseResponseForDiscount(body) {
 			productId = productsJson.products[i].id;
 			console.log("pid::::" + productId);
 			productTitle = productsJson.products[i].title;
-			compare_at_price = parseFloat(productsJson.products[i].variants[0].compare_at_price);
-			price = parseFloat(productsJson.products[i].variants[0].price);
+			compare_at_price = productsJson.products[i].variants[0].compare_at_price;
+			price = productsJson.products[i].variants[0].price;
 			tags = productsJson.products[i].tags;
 
 			//Calculate Discount
-
 			if (compare_at_price > 0 && price > 0 && compare_at_price >= price) {
 				discount = (compare_at_price - price) * 100 / compare_at_price;
 			}
-			//console.log("compare_at_price=" + compare_at_price + " price=" + price + " discount=" + discount);
-			// Json to create metadata field discount
-			createDiscMeta = { metafield: {
-				namespace: 'product',
-				key: 'discount',
-				value: discount.toFixed(2),
-				value_type: 'string'
-			}};
-
-			var postMetafieldUrl = '/admin/products/' + productId + '/metafields.json';
-
-			console.log("going to post discount field for " + productTitle + " dis " + discount.toFixed(2));
-
-
-			//console.log("metafiled url:" + postMetafieldUrl);
-			postDataToShopify(postHost, postMetafieldUrl, createDiscMeta);
-
 
 			discTag = getAppropriateTag(discount);
-			console.log("for product:" + productId + ":" + productTitle + " disTag:" + discTag + " discount:" + discount);
-
-			//sleep(200);
 
 			//Create Tags excluding DiscountTag
 			updatedTags = getUpdatedTags(tags, discTag);
@@ -166,10 +141,9 @@ function parseResponseForDiscount(body) {
 function postDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
-
+	sleep(400);
 	console.log("posting -->" + JSON.stringify(postData) + " URL:" + postUrl);
 	client.post(postUrl, postData, function (err, res, body) {
-		//sleep(400);
 		return console.log("======post========> " + res.statusCode /*+ JSON.stringify(body)*/);
 	});
 
@@ -178,9 +152,9 @@ function postDataToShopify(postHost, postUrl, postData) {
 function putDataToShopify(postHost, postUrl, postData) {
 
 	var client = request_json.newClient(postHost);
+	sleep(400);
 
 	client.put(postUrl, postData, function (err, res, body) {
-		//sleep(400);
 		return console.log(JSON.stringify(err) +  "======put========> " + res.statusCode /*+ JSON.stringify(body)*/);
 	});
 
@@ -193,14 +167,14 @@ function getUpdatedTags(tags, discTag) {
 	var x = 0;
 	for (j = 0; j < tagLength; j++) {
 		//console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
-		if (discountTags.indexOf(capitaliseFirstLetter(tagsStr[j].trim())) > -1) {
+		if (uptoTags.indexOf(tagsStr[j].trim()) > -1) {
 			console.log("not found");
 		} else {
 			updatedTags[x] = tagsStr[j].trim();
 			x++;
 		}
 	}
-	updatedTags[x] = discTag.toLowerCase();
+	updatedTags[x] = discTag;
 	return updatedTags;
 }
 
@@ -208,25 +182,25 @@ function getUpdatedTags(tags, discTag) {
 function getAppropriateTag(discount) {
 	var discTag = '';
 	if (discount >= 90) {
-		discTag = discountTags[9];
+		discTag = uptoTags[9];
 	} else if (discount >= 80 && discount <= 90) {
-		discTag = discountTags[8];
+		discTag = uptoTags[8];
 	} else if (discount >= 70 && discount <= 80) {
-		discTag = discountTags[7];
+		discTag = uptoTags[7];
 	} else if (discount >= 60 && discount <= 70) {
-		discTag = discountTags[6];
+		discTag = uptoTags[6];
 	} else if (discount >= 50 && discount <= 60) {
-		discTag = discountTags[5];
+		discTag = uptoTags[5];
 	} else if (discount >= 40 && discount <= 50) {
-		discTag = discountTags[4];
+		discTag = uptoTags[4];
 	} else if (discount >= 30 && discount <= 40) {
-		discTag = discountTags[3];
+		discTag = uptoTags[3];
 	} else if (discount >= 20 && discount <= 30) {
-		discTag = discountTags[2];
+		discTag = uptoTags[2];
 	} else if (discount >= 10 && discount <= 20) {
-		discTag = discountTags[1];
+		discTag = uptoTags[1];
 	} else if (discount > 0 && discount < 10) {
-		discTag = discountTags[0];
+		discTag = uptoTags[0];
 	}
 	return discTag;
 }
@@ -236,11 +210,6 @@ function sleep(miliseconds) {
 
 	while (currentTime + miliseconds >= new Date().getTime()) {
 	}
-}
-
-function capitaliseFirstLetter(string)
-{
-    return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 module.exports = router;
