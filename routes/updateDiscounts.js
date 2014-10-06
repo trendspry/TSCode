@@ -1,6 +1,6 @@
 var express = require('express');
 var request_json = require('request-json');
-var request = require("request");
+var requests = require("request");
 var router = express.Router();
 var logger = require("../utils/logger.js");
 //Stag variables
