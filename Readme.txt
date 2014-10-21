@@ -21,3 +21,11 @@ Here are the contents of store.properties
 store.apiKey=3a61d090139b47e036020ac61c80b8e2
 store.password=deb4069f2ffd14a1d0185b60de155e93
 store.baseUrl=trendspry-2.myshopify.com
+
+
+
+----------------------------------------------------------------
+
+Usage
+
+curl http://localhost:3000/updateDiscounts?prdCount=1250
