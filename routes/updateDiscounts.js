@@ -1,43 +1,33 @@
 var express = require('express');
-var request_json = require('request-json');
 var request = require("request");
 var router = express.Router();
 var logger = require("../utils/logger.js");
+var stringUtils = require("../utils/stringUtils.js");
+var tsReqRes = require("../utils/tsReqRes.js");
+var tsConstants = require("../utils/tsConstants.js");
 var PropertiesReader = require("properties-reader");
 var properties = PropertiesReader("./properties/store.properties");
 
 
-var apiKey = properties.get('store.apiKey');
-var password = properties.get('store.password');
-var baseUrl = properties.get('store.baseUrl');
+var pageNum = 1;
+var limitNum = 1;
+var LIMIT_EXPRESSION = tsConstants.LIMIT + limitNum + tsConstants.AMP;
 
-
-
-
-
-var passKey = apiKey + ':' + password;
-var HTTPS = "https://";
-var postHost = HTTPS + passKey + '@' + baseUrl;
-var PAGE = "page=";
-var AMP = "&";
-var LIMIT = 1;
-var LIMIT_EXPRESSION = "limit=" + LIMIT + AMP;
-var pageNum;
 var discountTags = ['Dis_0-10', 'Dis_10-20', 'Dis_20-30', 'Dis_30-40',
 	'Dis_40-50', 'Dis_50-60', 'Dis_60-70', 'Dis_70-80', 'Dis_80-90', 'Dis_90-100'];
 
 
 /* GET UpdateDiscounts. */
 router.get('/', function (req, res) {
-	pageNum = 1 ;
+	pageNum = 1;
 	logger.info("hello");
-	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
+	var url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL + "/admin/products.json?" + LIMIT_EXPRESSION + tsConstants.PAGE + pageNum;
 	var prdCount = req.param("prdCount");
 	logger.info("prdCount->" + prdCount);
-	if(prdCount > 0){
+	if (prdCount > 0) {
 		pageNum = prdCount
 	}
-	//var url = HTTPS + passKey + "@" + baseUrl + "/admin/products/340474147.json";
+	//var url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL + "/admin/products/340474147.json";
 	reqeustForUrl(url);
 
 	var fullname = "rahul agarwal";
@@ -65,7 +55,7 @@ function reqeustForUrl(url) {
 			// Uncomment the below to let is work in a loop
 			if (continueParsing) {
 				pageNum++;
-				nextUrl = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
+				nextUrl = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL + "/admin/products.json?" + LIMIT_EXPRESSION + tsConstants.PAGE + pageNum;
 				console.log("next url " + nextUrl);
 				reqeustForUrl(nextUrl);
 			}
@@ -73,7 +63,7 @@ function reqeustForUrl(url) {
 			//console.log("continue parsing in func " + continueParsing);
 		}
 		else {
-			console.log('ERROR====>' + JSON.stringify(error) );
+			console.log('ERROR====>' + JSON.stringify(error));
 		}
 	})
 
@@ -104,7 +94,7 @@ function parseResponseForDiscount(body) {
 			var updatedTags = [''];
 
 			//for (i = 0; i < productsFound; i++) {
-			console.log("req no::::::::: " + (LIMIT * (pageNum - 1) + i))
+			console.log("req no::::::::: " + (limitNum * (pageNum - 1) + i))
 			productId = productsJson.products[i].id;
 			console.log("pid::::" + productId);
 			productTitle = productsJson.products[i].title;
@@ -132,7 +122,7 @@ function parseResponseForDiscount(body) {
 
 
 			//console.log("metafiled url:" + postMetafieldUrl);
-			postDataToShopify(postHost, postMetafieldUrl, createDiscMeta);
+			tsReqRes.postDataToShopify(tsConstants.POST_HOST, postMetafieldUrl, createDiscMeta);
 
 
 			discTag = getAppropriateTag(discount);
@@ -152,41 +142,19 @@ function parseResponseForDiscount(body) {
 
 			//Put for tag
 			var putTagUrl = '/admin/products/' + productId + '.json';
-			//console.log(postHost + putTagUrl);
 
-			putDataToShopify(postHost, putTagUrl, updateTagsJson);
+
+			tsReqRes.putDataToShopify(tsConstants.POST_HOST, putTagUrl, updateTagsJson);
 
 
 		}
 
 		return true;
-	}   else {
-	return false;
+	} else {
+		return false;
 	}
 }
 
-function postDataToShopify(postHost, postUrl, postData) {
-
-	var client = request_json.newClient(postHost);
-
-	console.log("posting -->" + JSON.stringify(postData) + " URL:" + postUrl);
-	client.post(postUrl, postData, function (err, res, body) {
-		//sleep(400);
-		return console.log("======post========> " + res.statusCode /*+ JSON.stringify(body)*/);
-	});
-
-}
-
-function putDataToShopify(postHost, postUrl, postData) {
-
-	var client = request_json.newClient(postHost);
-
-	client.put(postUrl, postData, function (err, res, body) {
-		//sleep(400);
-		return console.log(JSON.stringify(err) +  "======put========> " + res.statusCode /*+ JSON.stringify(body)*/);
-	});
-
-}
 
 function getUpdatedTags(tags, discTag) {
 	var updatedTags = [''];
@@ -195,7 +163,7 @@ function getUpdatedTags(tags, discTag) {
 	var x = 0;
 	for (j = 0; j < tagLength; j++) {
 		//console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
-		if (discountTags.indexOf(capitaliseFirstLetter(tagsStr[j].trim())) > -1) {
+		if (discountTags.indexOf(stringUtils.capitaliseFirstLetter(tagsStr[j].trim())) > -1) {
 			console.log("not found");
 		} else {
 			updatedTags[x] = tagsStr[j].trim();
@@ -240,9 +208,5 @@ function sleep(miliseconds) {
 	}
 }
 
-function capitaliseFirstLetter(string)
-{
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
 
 module.exports = router;
