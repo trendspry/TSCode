@@ -32,6 +32,11 @@ router.get('/', function (req, res) {
 	pageNum = 1 ;
 	logger.info("hello");
 	var url = HTTPS + passKey + "@" + baseUrl + "/admin/products.json?" + LIMIT_EXPRESSION + PAGE + pageNum;
+	var prdCount = req.param("prdCount");
+	logger.info("prdCount->" + prdCount);
+	if(prdCount > 0){
+		pageNum = prdCount
+	}
 	//var url = HTTPS + passKey + "@" + baseUrl + "/admin/products/340474147.json";
 	reqeustForUrl(url);
 
