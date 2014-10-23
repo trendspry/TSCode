@@ -5,7 +5,6 @@
  * Time: 7:59 PM
  * To change this template use File | Settings | File Templates.
  */
-var request_json = require('request-json');
 var PropertiesReader = require("properties-reader");
 var properties = PropertiesReader("./properties/store.properties");
 
@@ -19,6 +18,9 @@ const postHost = https + passKey + '@' + baseUrl;
 const page = "page=";
 const limit = "limit=";
 const amp = "&";
+const cod = "Cash on Delivery (COD)";
+const fulfillment_status_fulfilled = "fulfilled";
+const fulfillment_status_pending = "pending";
 
 module.exports = {
 	API_KEY: apiKey,
@@ -29,7 +31,11 @@ module.exports = {
 	POST_HOST: postHost,
 	PAGE: page,
 	LIMIT: limit,
-	AMP: amp
+	AMP: amp,
+	COD: cod,
+	FULFILLMENT_STATUS_FULFILLED: fulfillment_status_fulfilled,
+	FULFILLMENT_STATUS_PENDING: fulfillment_status_pending
+
 };
 
 

@@ -164,7 +164,7 @@ function getUpdatedTags(tags, discTag) {
 	for (j = 0; j < tagLength; j++) {
 		//console.log("tagsStr:" + tagsStr[i] + " indexof:" + discountTags.indexOf(tagsStr[i].trim()));
 		if (discountTags.indexOf(stringUtils.capitaliseFirstLetter(tagsStr[j].trim())) > -1) {
-			console.log("not found");
+			console.log("found a tag in existing tags, skipping it");
 		} else {
 			updatedTags[x] = tagsStr[j].trim();
 			x++;

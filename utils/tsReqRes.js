@@ -16,7 +16,7 @@ module.exports = {
 			return console.log(JSON.stringify(err) + "====================put========> " + res.statusCode /*+ JSON.stringify(body)*/);
 		});
 
-	},
+		},
 	postDataToShopify: function (postHost, postUrl, postData) {
 
 		var client = request_json.newClient(postHost);

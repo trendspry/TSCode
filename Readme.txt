@@ -29,3 +29,6 @@ store.baseUrl=trendspry-2.myshopify.com
 Usage
 
 curl http://localhost:3000/updateDiscounts?prdCount=1250
+
+curl http://localhost:3000/updateOrderCodTags?fromDate=2014-10-22
+
