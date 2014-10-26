@@ -23,7 +23,7 @@ var LIMIT_EXPRESSION = tsConstants.LIMIT + limitNum + tsConstants.AMP;
 router.get('/', function (req, res) {
 	pageNum = 1;
 	logger.info("hello");
-	if(req.param("fromDate") === undefined){
+	if (req.param("fromDate") === undefined) {
 		console.log("this is what i got in dateFrom-->" + req.param("fromDate") + " nothing will happen now");
 	} else {
 		dt = req.param("fromDate");
@@ -31,12 +31,14 @@ router.get('/', function (req, res) {
 
 	var url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL
 			+ "/admin/orders.json?created_at_min=" + dt + tsConstants.AMP + LIMIT_EXPRESSION + tsConstants.PAGE + pageNum;
+
+
 	var orderCount = req.param("orderCount");
 	logger.info("orderCount->" + orderCount);
 	if (orderCount > 0) {
 		pageNum = orderCount
 	}
-	//var url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL + "/admin/products/340474147.json";
+	//url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL + "/admin/orders/275239427.json";
 	reqeustForUrl(url);
 
 	var fullname = "rahul agarwal";
@@ -61,6 +63,7 @@ function reqeustForUrl(url) {
 
 		if (!error && response.statusCode === 200) {
 			continueParsing = parseResponseForDiscount(body);
+			//continueParsing = false;
 			// Uncomment the below to let is work in a loop
 			if (continueParsing) {
 				pageNum++;
@@ -93,7 +96,8 @@ function parseResponseForDiscount(body) {
 	var fulfillment_status = '';
 	var zip = '';
 	var createDt = '';
-	var codCourierTag = '';
+	var courierTag = '';
+	var cod_alternate_courier_tag = '';
 	var createDiscMetaString = '';
 	var productTitle = '';
 	var ordersFound = ordersJson.orders.length;
@@ -132,19 +136,36 @@ function parseResponseForDiscount(body) {
 			orderTags = ordersJson.orders[i].tags;
 			console.log("orderTags::::::" + orderTags);
 			logger.info("orderTags:::::" + orderTags);
-
-
-
-			if (gateway == tsConstants.COD && fulfillment_status != tsConstants.FULFILLMENT_STATUS_FULFILLED) {
-				console.log("This is a COD order lets check for fulfilment");
-				codCourierTag = courierUtil.getAppropriateCodForZip(zip);
-				console.log("codCourierTag:" + codCourierTag);
+			if (gateway != tsConstants.COD) {
+				gateway = tsConstants.PREPAID;
 			}
+
+
+			if (fulfillment_status != tsConstants.FULFILLMENT_STATUS_FULFILLED) {
+				if (gateway == tsConstants.COD) {
+					console.log("This is a COD order lets check for fulfilment");
+					courierTag = courierUtil.getCODCourierForZip(zip, tsConstants.COD);
+
+					if (courierTag == courierConstants.COD_NA) {
+						cod_alternate_courier_tag = courierUtil.getPrepaidCourierZip(zip, tsConstants.PREPAID);
+					}
+				} else if (gateway == tsConstants.PREPAID) {
+					courierTag = courierUtil.getPrepaidCourierZip(zip, tsConstants.PREPAID);
+				}
+			}
+			console.log("courierTag:" + courierTag);
+			console.log("cod_alternate_courier_tag:" + cod_alternate_courier_tag);
 
 			//sleep(200);
 
 			//Create Tags excluding DiscountTag
-			updatedTags = getUpdatedTags(orderTags, codCourierTag);
+
+			updatedTags = getUpdatedTags(orderTags, courierTag, courierConstants.EXPECTED_TAGS_WITHOUT_COD_NA);
+			logger.info("updated tags: " + updatedTags.toString());
+			if (cod_alternate_courier_tag) {
+				logger.info("about to update for alternate tags---> values: updatedTags:" + updatedTags.toString() + " cod_alternate_courier_tag:" + cod_alternate_courier_tag + " cod_tag_priority:" + courierConstants.COD_TAGS_PRIORITY)
+				updatedTags = getUpdatedTags(updatedTags.toString(), cod_alternate_courier_tag, courierConstants.COD_TAGS_PRIORITY);
+			}
 			console.log("for order:" + orderId + ":" + name + ":" + email + " updatedTags:" + updatedTags.toString());
 			logger.info("for order:" + orderId + ":" + name + ":" + email + " updatedTags:" + updatedTags.toString());
 			// Json to update orderTags
@@ -167,32 +188,24 @@ function parseResponseForDiscount(body) {
 }
 
 
-function getUpdatedTags(tags, targetTag) {
-	var updatedTags = [''];
+function getUpdatedTags(tags, targetTag, possibleTargetValues) {
+	var finalTags = [''];
 	var splitTagArray = [];
-	if(tags.length > 0){
+	if (tags.length > 0) {
 		splitTagArray = tags.split(",");
 	}
 	var tagLength = splitTagArray.length;
 	var x = 0;
 	for (j = 0; j < tagLength; j++) {
-		if (courierConstants.COD_TAGS_PRIORITY.indexOf(splitTagArray[j].trim()) > -1 || courierConstants.COD_NA === splitTagArray[j].trim()) {
+		if (possibleTargetValues.indexOf(splitTagArray[j].trim()) > -1 ) {
 			console.log("found a tag in existing tags, skipping it");
 		} else {
-			updatedTags[x] = splitTagArray[j].trim();
+			finalTags[x] = splitTagArray[j].trim();
 			x++;
 		}
 	}
-	updatedTags[x] = targetTag.toLowerCase();
-	return updatedTags;
-}
-
-
-function sleep(miliseconds) {
-	var currentTime = new Date().getTime();
-
-	while (currentTime + miliseconds >= new Date().getTime()) {
-	}
+	finalTags[x] = targetTag.toLowerCase();
+	return finalTags;
 }
 
 

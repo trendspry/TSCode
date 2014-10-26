@@ -19,6 +19,7 @@ const page = "page=";
 const limit = "limit=";
 const amp = "&";
 const cod = "Cash on Delivery (COD)";
+const prepaid = "Prepaid";
 const fulfillment_status_fulfilled = "fulfilled";
 const fulfillment_status_pending = "pending";
 
@@ -33,6 +34,7 @@ module.exports = {
 	LIMIT: limit,
 	AMP: amp,
 	COD: cod,
+	PREPAID: prepaid,
 	FULFILLMENT_STATUS_FULFILLED: fulfillment_status_fulfilled,
 	FULFILLMENT_STATUS_PENDING: fulfillment_status_pending
 
