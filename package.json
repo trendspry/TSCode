@@ -16,6 +16,7 @@
     "winston": "^0.8.0",
     "request": "~2.44.0",
     "request-json": "~0.4.12",
-    "properties-reader": "~0.0.5"
+    "properties-reader": "~0.0.5",
+    "shopify-node": "~0.2.2"
   }
 }
