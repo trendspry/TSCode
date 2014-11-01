@@ -31,6 +31,8 @@ router.get('/', function (req, res) {
 
 	var url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL
 			+ "/admin/orders.json?created_at_min=" + dt + tsConstants.AMP + LIMIT_EXPRESSION + tsConstants.PAGE + pageNum;
+	//url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL +
+	//		"/admin/orders.json?created_at_min=2014-10-26T20:00:00&created_at_max=2014-10-26T20:10:00&limit=1&page=2";
 
 
 	var orderCount = req.param("orderCount");
@@ -160,6 +162,7 @@ function parseResponseForDiscount(body) {
 
 			//Create Tags excluding DiscountTag
 
+			console.log(courierConstants.EXPECTED_TAGS_WITHOUT_COD_NA);
 			updatedTags = getUpdatedTags(orderTags, courierTag, courierConstants.EXPECTED_TAGS_WITHOUT_COD_NA);
 			logger.info("updated tags: " + updatedTags.toString());
 			if (cod_alternate_courier_tag) {
@@ -197,7 +200,7 @@ function getUpdatedTags(tags, targetTag, possibleTargetValues) {
 	var tagLength = splitTagArray.length;
 	var x = 0;
 	for (j = 0; j < tagLength; j++) {
-		if (possibleTargetValues.indexOf(splitTagArray[j].trim()) > -1 ) {
+		if (possibleTargetValues.indexOf(splitTagArray[j].trim()) > -1) {
 			console.log("found a tag in existing tags, skipping it");
 		} else {
 			finalTags[x] = splitTagArray[j].trim();
