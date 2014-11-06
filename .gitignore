@@ -3,3 +3,4 @@ tscode.iml
 node_modules/*/
 npm-debug.log
 logs/*.log
+node_modules/
