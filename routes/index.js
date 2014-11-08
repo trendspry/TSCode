@@ -1,6 +1,5 @@
 var express = require('express');
 
-var request = require("request");
 var router = express.Router();
 
 
@@ -12,25 +11,66 @@ router.get('/', function (req, res) {
 /* GET Hello World page. */
 router.get('/helloworld', function (req, res) {
 
-	req = reqeustForUrl("http://localhost:3000/helloworld");
 
-	console.log("does this get printed immediately ie before got repsonse?")
+
+	var text = '{"employees":[' +
+			'{"firstName":"John","lastName":"Doe" },' +
+			'{"firstName":"Anna","lastName":"Smith" },' +
+			'{"firstName":"Peter","lastName":"Jones" }]}';
+
+	obj = JSON.parse(text);
+
+	var categories = [
+	            'Jan',
+	            'Feb',
+	            'Mar',
+	            'Apr',
+	            'May',
+	            'Jun',
+	            'Jul',
+	            'Aug',
+	            'Sep',
+	            'Oct',
+	            'Nov',
+	            'Dec'
+	        ];
+	var json = JSON.stringify(categories);
+
+
+	//var fullname = obj.employees[1].firstName + " " + text;
+
 	var test = "rahul";
-	console.log(JSON.stringify(req));
 
-	res.render('helloworld', { title: JSON.stringify(req) })
 
+	sleep(5000, function() {
+		res.render('helloworld', { title: test })
+		});
 });
 
 function reqeustForUrl(url) {
 	console.log("about to hit thte url:" + url);
-
+	var continueParsing;
 	var req = request({
 		url: url,
 		json: true
+	}, function (error, response, body) {
+
+		if (!error && response.statusCode === 200) {
+			console.log("got the response");
+		}
+		else {
+			console.log('ERROR====>' + JSON.stringify(error));
+		}
 	})
 	return req;
 }
 
+function sleep(time, callback) {
+    var stop = new Date().getTime();
+    while(new Date().getTime() < stop + time) {
+        ;
+    }
+    callback();
+}
 
 module.exports = router;
