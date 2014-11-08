@@ -1,5 +1,6 @@
 var express = require('express');
 
+var request = require("request");
 var router = express.Router();
 
 
@@ -11,35 +12,25 @@ router.get('/', function (req, res) {
 /* GET Hello World page. */
 router.get('/helloworld', function (req, res) {
 
+	req = reqeustForUrl("http://localhost:3000/helloworld");
 
+	console.log("does this get printed immediately ie before got repsonse?")
+	var test = "rahul";
+	console.log(JSON.stringify(req));
 
-	var text = '{"employees":[' +
-			'{"firstName":"John","lastName":"Doe" },' +
-			'{"firstName":"Anna","lastName":"Smith" },' +
-			'{"firstName":"Peter","lastName":"Jones" }]}';
+	res.render('helloworld', { title: JSON.stringify(req) })
 
-	obj = JSON.parse(text);
-
-	var categories = [
-	            'Jan',
-	            'Feb',
-	            'Mar',
-	            'Apr',
-	            'May',
-	            'Jun',
-	            'Jul',
-	            'Aug',
-	            'Sep',
-	            'Oct',
-	            'Nov',
-	            'Dec'
-	        ];
-	var json = JSON.stringify(categories);
-
-	var fullname = obj.employees[1].firstName + " " + text;
-
-
-	res.render('helloworld', { title: fullname })
 });
+
+function reqeustForUrl(url) {
+	console.log("about to hit thte url:" + url);
+
+	var req = request({
+		url: url,
+		json: true
+	})
+	return req;
+}
+
 
 module.exports = router;
