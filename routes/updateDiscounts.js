@@ -28,7 +28,7 @@ router.get('/', function (req, res) {
 		pageNum = prdCount
 	}
 	//var url = tsConstants.HTTPS + tsConstants.PASS_KEY + "@" + tsConstants.BASE_URL + "/admin/products/340474147.json";
-	reqeustForUrl(url);
+	var req = reqeustForUrl(url);
 
 	var fullname = "rahul agarwal";
 	res.render('helloworld', { title: fullname })
@@ -45,7 +45,7 @@ function reqeustForUrl(url) {
 	//sleep(1000);
 	console.log("about to hit thte url:" + url);
 	var continueParsing;
-	request({
+	var req = request({
 		url: url,
 		json: true
 	}, function (error, response, body) {
@@ -66,6 +66,7 @@ function reqeustForUrl(url) {
 			console.log('ERROR====>' + JSON.stringify(error));
 		}
 	})
+	return req;
 
 }
 

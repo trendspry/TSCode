@@ -13,11 +13,12 @@ module.exports = {
 
 	getCODCourierForZip: function (zip, payment_method) {
 		var courierTag = '';
+		console.log("courier tag ----------------------------> " + courierTag);
 		if (payment_method == tsConstants.COD) {
 			if (courierConstants.COD_DELHIVERY.indexOf(zip.trim()) != -1) {
 				courierTag = courierConstants.COD_TAGS_PRIORITY[0];
-			} else if (courierConstants.COD_BLUEDART.indexOf(zip.trim()) != -1) {
-				courierTag = courierConstants.COD_TAGS_PRIORITY[1];
+			/*} else if (courierConstants.COD_BLUEDART.indexOf(zip.trim()) != -1) {
+				courierTag = courierConstants.COD_TAGS_PRIORITY[1];*/
 			} else if (courierConstants.COD_FEDEX.indexOf(zip.trim()) != -1) {
 				courierTag = courierConstants.COD_TAGS_PRIORITY[2];
 			} else if (courierConstants.COD_FIRSTFLIGHT.indexOf(zip.trim()) != -1) {
@@ -28,6 +29,7 @@ module.exports = {
 				courierTag = courierConstants.COD_NA;
 			}
 		}
+		console.log("courier tag is ---------> " + courierTag);
 		return courierTag;
 	},
 
@@ -36,8 +38,8 @@ module.exports = {
 		if (payment_method == tsConstants.PREPAID) {
 			if (courierConstants.PREPAID_DELHIVERY.indexOf(zip.trim()) != -1) {
 				courierTag = courierConstants.PREPAID_TAGS_PRIORITY[0];
-			} else if (courierConstants.PREPAID_BLUEDART.indexOf(zip.trim()) != -1) {
-				courierTag = courierConstants.PREPAID_TAGS_PRIORITY[1];
+			/*} else if (courierConstants.PREPAID_BLUEDART.indexOf(zip.trim()) != -1) {
+				courierTag = courierConstants.PREPAID_TAGS_PRIORITY[1];*/
 			} else if (courierConstants.PREPAID_FEDEX.indexOf(zip.trim()) != -1) {
 				courierTag = courierConstants.PREPAID_TAGS_PRIORITY[2];
 			} else if (courierConstants.PREPAID_FIRSTFLIGHT.indexOf(zip.trim()) != -1) {
